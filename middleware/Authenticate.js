@@ -23,8 +23,8 @@ const Authenticate = async (req,res,next) => {
         next();
     }
     catch(err){
-        res.status(401).send("Unothorized : NO token ")
         console.log(err);
+        res.status(401).send("Unothorized : NO token ");
     }
 
 }
