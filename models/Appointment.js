@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const bcrypt = require("bcrypt");
 
 const appointmentSchema = new mongoose.Schema({
     name: {
@@ -46,6 +46,13 @@ const appointmentSchema = new mongoose.Schema({
         required: true,
     }
 });
+
+appointmentSchema.pre('save', async function(next){
+    if(this.isModified('password')){
+        this.password = await bcrypt.hash(this.password,12);
+    }
+});
+
 
 const Patient = mongoose.model("Appoitment",appointmentSchema);
 

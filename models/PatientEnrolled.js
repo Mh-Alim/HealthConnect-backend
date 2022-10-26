@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require('bcrypt');
 
 const EnrolledSchema = new mongoose.Schema({
     name: {
@@ -17,6 +18,12 @@ const EnrolledSchema = new mongoose.Schema({
         type : String,
         required: true,
     },
+});
+
+EnrolledSchema.pre('save', async function(next){
+    if(this.isModified('password')){
+        this.password = await bcrypt.hash(this.password,12);
+    }
 });
 
 const PatientEnrolled = mongoose.model("PatientEnrolled",EnrolledSchema);

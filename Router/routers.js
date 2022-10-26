@@ -98,11 +98,12 @@ router.post("/login",async (req,res)=>{
             return res.status(400).json({
                 error : "empty credentials"
             })
-        const userExist = await User.findOne({email });
+        const userExist = await User.findOne({ email });
+
         // console.log(` userExist is ${userExist}`);
         if(userExist){
 
-            const isMatch = await bcrypt.compare(userExist.password,password);
+            const isMatch = await bcrypt.compare(password,userExist.password);
             if(isMatch){
                 let token = await userExist.getJwtToken();
                 console.log("token is " + token);
@@ -125,47 +126,93 @@ router.post("/login",async (req,res)=>{
 });
 
 
-router.post("/appointment" , async (req,res)=>{
+router.post("/appointment", Authenticate , async (req,res)=>{
     
 
    try{
     const {name,phone,email,password,bloodGroup,address1,address2,city,zip,gender}  = req.body;
 
     if(!name || !phone || !email || !password || !bloodGroup || !address1 || !address2 || !city || !zip || !gender){
-        return res.status(422).json({error: "enter empty field"});
+        return res.status(422).json({message: "enter empty field"});
+    }
+    
+    
+
+    // this thing will happen only when my email is alreday present in my enrolled collection
+
+
+    if(email != req.rootUser.email){
+        return res.status(401).json({
+            message : " entered email and registered email should be same"
+        })
+    }
+
+    // password validation
+
+    const userLoginPassword = req.rootUser.password;
+
+    const isMatch = await bcrypt.compare(password,userLoginPassword);
+    console.log(isMatch);
+    if(!isMatch) return res.status(401).json({
+        message: " entered password and registered password is not same ",
+    });
+
+
+
+    // check double appointment
+
+    const patientExist = await Patient.findOne({email});
+
+    if(patientExist){
+        return res.status(422).json({
+            message: "Already taken appointment"
+        })
+    }
+
+    // price decide 
+
+    let price = 500;
+
+    const isPatinetEnrolledBefore = await PatientEnrolled.findOne({email});
+
+    if(isPatinetEnrolledBefore){
+        price = 200;
     }
 
 
-    // password check if same as login password or not
-    
-    // const isMatch = await bcrypt.compare(req.rootUser.password,password);
 
-    // if(!isMatch)  {
-    //     return res.status(400).send("Password doesnt match");
-    // }
-
-
-
-    let price = 500;
-    const PatientEnrolledBefore = await PatientEnrolled.findOne({email});
-    // console.log(PatientEnrolledBefore);
-    if(!PatientEnrolledBefore){
+    else {
         const patient = new PatientEnrolled({
             name,phone,email,password
         });
         patient.save();
     }
-    else{
-        price = 200;
-    }
-    const patientExist = await Patient.findOne({email});
+      
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
-    if(patientExist){
-        return res.status(422).json({
-            error: "Already taken appointment"
-        })
-    }
+    
+    
+    
     // check if password save in user database is same or not
+
+
     const patient = new Patient({
         name,phone,email,password,bloodGroup,address1,address2,city,zip,gender,price
     });
