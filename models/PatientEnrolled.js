@@ -18,6 +18,9 @@ const EnrolledSchema = new mongoose.Schema({
         type : String,
         required: true,
     },
+    review: {
+        type: String,
+    }
 });
 
 EnrolledSchema.pre('save', async function(next){

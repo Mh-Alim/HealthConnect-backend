@@ -23,6 +23,24 @@ const UserSchema = new mongoose.Schema({
         type : String,
         required : true,
     },
+    height:{
+        type:Number,
+    },
+    address:{
+        type:String,
+    },
+    Gender:{
+        type: String,
+    },
+    weight : {
+        type: Number,
+    },
+    dob:{
+        type: String,
+    },
+    otp:{
+        type: String,
+    },
     tokens: [{ token:{
         type: String,
         required : true,
