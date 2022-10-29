@@ -20,6 +20,9 @@ const EnrolledSchema = new mongoose.Schema({
     },
     review: {
         type: String,
+    },
+    rating:{
+        type: Number,
     }
 });
 

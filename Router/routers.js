@@ -461,7 +461,7 @@ router.post("/reset-password",async (req,res)=> {
         })
     }
 
-    console.log(req.body)
+    // console.log(req.body)
     const password = await bcrypt.hash(pass,12);
     const cpassword = await bcrypt.hash(cpass,12);
 
@@ -503,7 +503,7 @@ router.post("/reset-password",async (req,res)=> {
             }
         );
 
-        console.log(password);
+        // console.log(password);
 
         res.status(200).json({
             message: "password successfully changed",
@@ -520,9 +520,68 @@ router.post("/reset-password",async (req,res)=> {
 })
 
 
-router.post("/review", async (req,res)=> {
+router.post("/review", Authenticate, async (req,res)=> {
 
-    console.log(req.body);
+    try{
+        const {email} = req.rootUser;
+        const {review,revRating} = req.body;
+        console.log(req.body);
+
+        const userEnrolled = await PatientEnrolled.findOne({email});
+        if(!userEnrolled) {
+            res.status(401).json({
+                message : "You have not taken any appointment yet"
+            })
+        }
+        
+        
+        const updateEnrolledPatinet = await PatientEnrolled.updateOne({email},{
+            $set: {
+                review,
+                rating:revRating,
+            }
+        },{
+                new: true,
+                useFindAndModify : false
+            }
+        );
+        
     
+        res.status(200).json({
+            message: "Review Added",
+            email : userEnrolled._id,
+        })
+    }
+    catch(err){
+        res.status(500).json({
+            message: err,
+        })
+    }
+   
 })
+
+
+router.get("/reviews",async(req,res)=> {
+    try{
+        const user = await PatientEnrolled.find();
+
+        res.status(200).json({
+            user
+        });
+    }
+    catch(err){
+        res.status(500).json({
+            message : err,
+        })
+    }
+
+})
+
+
+
+
+/// my email 
+
+
+
 module.exports = router;

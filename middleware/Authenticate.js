@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userSchema");
+const router = require("../Router/routers");
 
 const Authenticate = async (req,res,next) => {
 
@@ -28,6 +29,8 @@ const Authenticate = async (req,res,next) => {
     }
 
 }
+
+
 
 
 
