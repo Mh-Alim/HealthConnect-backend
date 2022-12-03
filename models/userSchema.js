@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema({
     name: {
+        
         type: String,
         required : true,
     },
@@ -19,9 +20,53 @@ const UserSchema = new mongoose.Schema({
         type : String,
         required: true,
     },
-    cpassword:{
-        type : String,
+    otp:{
+        type: String,
+    },
+    // cpassword:{
+    //     type : String,
+    //     required : true,
+    // },
+    
+    tokens: [{ token:{
+        type: String,
         required : true,
+    } }],
+    
+    // reviews 
+    appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appoitment' }]
+});
+
+
+
+// appointments schema
+
+
+const appointmentSchema = new mongoose.Schema({
+    
+    user : {type: mongoose.Schema.Types.ObjectId, ref : 'user'},
+    status: {
+        type: String,
+        default : "na"
+    },
+    price : {
+        type: Number,
+        default : 500
+    },
+});
+
+// user physical details 
+
+const userDetailsSchema = new mongoose.Schema({
+    user: {type: mongoose.Schema.Types.ObjectId, ref : 'user'},
+    name:{
+        type : String
+    },
+    phone:[{
+        type : Number,
+    }],
+    bloodGroup: {
+        type : String,
     },
     height:{
         type:Number,
@@ -36,16 +81,20 @@ const UserSchema = new mongoose.Schema({
         type: Number,
     },
     dob:{
-        type: String,
+        type: Date,
     },
-    otp:{
-        type: String,
+    
+    city:{
+        type : String,
+
     },
-    tokens: [{ token:{
-        type: String,
-        required : true,
-    } }]
-});
+    zip: {
+        type: Number,
+    },
+    state: {
+        type : Number,
+    },
+})
 
 UserSchema.methods.getJwtToken = async function(){
     try{
@@ -65,13 +114,15 @@ UserSchema.methods.getJwtToken = async function(){
 UserSchema.pre('save', async function(next){
     if(this.isModified('password')){
         this.password = await bcrypt.hash(this.password,12);
-        this.cpassword = await bcrypt.hash(this.cpassword,12);
+        // this.cpassword = await bcrypt.hash(this.cpassword,12);
     }
 })
 
 
 const User = mongoose.model("user", UserSchema);
+const Patient = mongoose.model("Appoitment",appointmentSchema);
+const UserDetails = mongoose.model("Details",userDetailsSchema);
 
-
-
-module.exports = User;
+module.exports = {
+    User,Patient,UserDetails
+};

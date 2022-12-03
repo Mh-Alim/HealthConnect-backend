@@ -1,13 +1,18 @@
 const express = require("express");
-const User = require("../models/userSchema");
-const Patient = require("../models/Appointment")
+const {User,Patient,UserDetails} = require("../models/userSchema");
+// const Patient = require("../models/Appointment")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const Authenticate = require("../middleware/Authenticate");
 const { response } = require("express");
-const PatientEnrolled = require("../models/PatientEnrolled");
+// const PatientEnrolled = require("../models/PatientEnrolled");
 const nodemailer = require("nodemailer");
+
+
+/// learning about ref 
+const {Story,Person} = require("../models/exampleSchema")
+const mongoose = require("mongoose")
 
 router.get("/",(req,res)=>{
     res.send("Home page");
@@ -153,7 +158,7 @@ router.post("/register", async (req,res)=>{
 console.log(req.body)
         if(!name || !phone || !email || !password || !cpassword){
             return res.status(422).json({error : "enter empty field"});
-            return res.status(422).json({error : "enter empty field"});
+            // return res.status(422).json({error : "enter empty field"});
         }
         const userExist = await User.findOne({email: email});
         console.log(userExist);
@@ -168,7 +173,7 @@ console.log(req.body)
             phone,
             email,
             password,
-            cpassword,
+            // cpassword,
         })
     
         const isSaved = await user.save();
@@ -230,16 +235,12 @@ router.post("/appointment", Authenticate , async (req,res)=>{
     
 
    try{
-    const {name,phone,email,password,bloodGroup,address1,address2,city,zip,gender}  = req.body;
-
-    if(!name || !phone || !email || !password || !bloodGroup || !address1 || !address2 || !city || !zip || !gender){
+    // address2 removed
+    const {name,phone,email,dob,bloodGroup,address1,city,zip,gender}  = req.body;
+    
+    if(!name || !dob || !phone || !email || !bloodGroup || !address1 || !city || !zip || !gender){
         return res.status(422).json({message: "enter empty field"});
     }
-    
-    
-
-    // this thing will happen only when my email is alreday present in my enrolled collection
-
 
     if(email != req.rootUser.email){
         return res.status(401).json({
@@ -247,86 +248,109 @@ router.post("/appointment", Authenticate , async (req,res)=>{
         })
     }
 
-    // password validation
+    
 
-    const userLoginPassword = req.rootUser.password;
-
-    const isMatch = await bcrypt.compare(password,userLoginPassword);
-    console.log(isMatch);
-    if(!isMatch) return res.status(401).json({
-        message: " entered password and registered password is not same ",
-    });
-
-
-
+    const user_id = req.rootUser._id;
     // check double appointment
 
-    const patientExist = await Patient.findOne({email});
+    const patientExist = await Patient.findOne({user: user_id,status: "Progress"});
 
+    console.log(patientExist);
     if(patientExist){
         return res.status(422).json({
             message: "Already taken appointment"
         })
     }
 
+
+    
     // price decide 
 
     let price = 500;
 
-    const isPatinetEnrolledBefore = await PatientEnrolled.findOne({email});
+    const isPatinetEnrolledBefore = await Patient.find({user:user_id});
 
-    if(isPatinetEnrolledBefore){
+    if(isPatinetEnrolledBefore.length > 1){
         price = 200;
     }
-
-
-
-    else {
-        const patient = new PatientEnrolled({
-            name,phone,email,password
-        });
-        patient.save();
+    else if(isPatinetEnrolledBefore.length === 1){
+        price = isPatinetEnrolledBefore[0].status === "Completed" ? 200 : 500;
     }
-      
-
-        
 
 
+    // storing user details in userDetails collection 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+    const detailsExist = await UserDetails.findOne({user: user_id});
+    // console.log(detailsExist)
+    if(!detailsExist){
+        const userDetail = new UserDetails({
+       
+            user: user_id,
+            name,
+            bloodGroup,
+            city,
+            zip,
+            Gender: gender,
+            address: address1,
+            dob,
+            phone,
     
+        })
     
-    
-    
-    // check if password save in user database is same or not
+        await userDetail.save();
+    }
+    else {
+        const updateDetails = await UserDetails.updateOne({user:user_id},{
+            $set: {
+                name,
+                bloodGroup,
+                city,
+                zip,
+                Gender: gender,
+                address: address1,
+                dob,
+                phone,
+
+            }
+        },{
+                new: true,
+                useFindAndModify : false
+            }
+        );
+       
+    }
 
 
-    const patient = new Patient({
-        name,phone,email,password,bloodGroup,address1,address2,city,zip,gender,price
-    });
+    // now taking appointment in appointment collection 
 
-    const isPatientSaved = patient.save();
-    if(isPatientSaved) res.status(201).json({
-        success: "true",
-        message: "Appointment has successfully taken",
+    const appointment = new Patient({
+        user: user_id,
+        status: "Progress",
+        price
     })
 
+    await appointment.save();
+    let arr = req.rootUser.appointments;
+    arr.push(appointment);
+    const updateAppointment = await User.updateOne({email},{
+        $set: {
+            appointments: arr,
+        }
+    },{
+            new: true,
+            useFindAndModify : false
+        }
+    );
 
+        res.status(201).json({
+            message : "successfully taken appointment",
+        })
    }
-   catch(error){
-    console.log("my error is "+error);
+   catch(err){
+    res.json({
+        err 
+    })
    }
 
 });
@@ -578,10 +602,67 @@ router.get("/reviews",async(req,res)=> {
 })
 
 
+/*
+// Learning about population and ref
+
+router.get("/ref", async (req,res)=>{
+
+    const author = new Person({
+        _id: new mongoose.Types.ObjectId(),
+        name: 'baaburao',
+        age: 50
+    });
 
 
-/// my email 
+    author.save(function(err){
+        if(err){
+            console.log(err);
+        }
+        const story1 = new Story({
+            title: 'l lg gyre',
+            author: author._id  ,  // assign the _id from the person
+            fans: author._id
+          });
+          story1.save(function (e) {
+              if (err) return console.log(e);;
+    author.stories.push(story1);
+              author.save()
+              // that's it!
+            });
+    });
 
+    
+
+    
+})
+
+
+router.get("/refFind",async (req,res)=>{
+    // Story.findOne({title: 'Casino Royale'}).populate('author').exec(function(err,story){
+    //     if(err) res.json({err});
+    //     else res.json({
+    //         message : `author name is ${story.author._id}`
+    //     })
+    // })
+
+    // const story = await Story.findOne({ title: 'Casino Royale' }).populate('author').populate('fans');
+    const story = await Story.findOne({ title: 'Making' }).populate({ path: 'fans', select: 'name' }).populate({ path: 'fans', match: { age: { $gte: 21 } },select: 'age' });;
+    console.log(story.populated('author'));
+    // console.log(story.populated('fans'));
+    res.json({
+        success : true,
+        story
+    })
+})
+router.get("/r",async (req,res)=>{
+   
+      
+       
+})
+
+
+
+                */
 
 
 module.exports = router;
