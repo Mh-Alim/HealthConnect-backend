@@ -34,7 +34,11 @@ const UserSchema = new mongoose.Schema({
     } }],
     
     // reviews 
-    appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appoitment' }]
+    appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appoitment' }],
+
+    details : { type: mongoose.Schema.Types.ObjectId, ref: 'Details' },
+
+    reviews : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reviews' }],
 });
 
 
@@ -81,7 +85,7 @@ const userDetailsSchema = new mongoose.Schema({
         type: Number,
     },
     dob:{
-        type: Date,
+        type: String,
     },
     
     city:{
@@ -95,6 +99,19 @@ const userDetailsSchema = new mongoose.Schema({
         type : Number,
     },
 })
+
+// reveiws schema 
+
+
+const reviewSchema = new mongoose.Schema({
+    
+    user : {type: mongoose.Schema.Types.ObjectId, ref : 'user'},
+    review : String,
+    reviewRating : Number
+});
+
+
+// otp schema
 
 UserSchema.methods.getJwtToken = async function(){
     try{
@@ -122,7 +139,8 @@ UserSchema.pre('save', async function(next){
 const User = mongoose.model("user", UserSchema);
 const Patient = mongoose.model("Appoitment",appointmentSchema);
 const UserDetails = mongoose.model("Details",userDetailsSchema);
+const Reviews = mongoose.model("Review",reviewSchema);
 
 module.exports = {
-    User,Patient,UserDetails
+    User,Patient,UserDetails,Reviews
 };

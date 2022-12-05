@@ -11,10 +11,15 @@ const personSchema = Schema({
 });
 
 const storySchema = Schema({
-  author: [{ type: Schema.Types.ObjectId, ref: 'Person' }],
+   
   title: String,
-  fans: [{ type: Schema.Types.ObjectId, ref: 'Person' }]
+  otps: { 
+    otp : String,
+    createdAt : Date,
+    expiresAt : Date,
+  }
 });
+// storySchema.path('otps.date').index({ expires: 10 });
 
 const Story = mongoose.model('Story', storySchema);
 const Person = mongoose.model('Person', personSchema);

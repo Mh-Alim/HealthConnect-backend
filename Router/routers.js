@@ -1,5 +1,5 @@
 const express = require("express");
-const {User,Patient,UserDetails} = require("../models/userSchema");
+const {User,Patient,UserDetails,Reviews} = require("../models/userSchema");
 // const Patient = require("../models/Appointment")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
@@ -49,79 +49,50 @@ router.get("/",(req,res)=>{
 //     }).catch(err => console.log(err));
 // })
 
+// "/profile" updated wrt new db schema.
+router.get("/profile",Authenticate,async (req,res)=>{
+    // console.log("Hello my about")
 
-router.get("/profile",Authenticate,(req,res)=>{
-    console.log("Hello my about")
-    res.send(req.rootUser);
+    const data = await User.findOne({_id : req.rootUser._id}).populate('details').exec();
+    // console.log(data);
+    res.send(data);
 })
-router.get("/editProfile",Authenticate,(req,res)=>{
-    console.log("Hello my editProfile")
-    res.send(req.rootUser);
-});
+
+
+// router.get("/editProfile",Authenticate,(req,res)=>{
+//     console.log("Hello my editProfile")
+//     res.send(req.rootUser);
+// });
 
 
 router.post("/editProfile",Authenticate, async(req,res)=>{
     console.log(req.body);
-
-    const {name,phone,email,address,height,weight,dob,id} = req.body;
+    
+    const {name,phone,address,height,weight,dob} = req.body;
 
     
 
     try{
 
-        const updateUser = await User.findByIdAndUpdate({_id:id},{
+        const updateUser = await User.findByIdAndUpdate({_id:req.rootUser._id},{
             $set: {
                 name,
                 phone,
+            }
+        },{
+                new: true,
+                useFindAndModify : false
+            }
+        );
+        // console.log(updateUser);
+
+        const updateDetails = await UserDetails.updateOne({user:req.rootUser._id},{
+            $set: {
+
                 address,
                 height,
                 weight,
                 dob
-            }
-        },{
-                new: true,
-                useFindAndModify : false
-            }
-        );
-        console.log(updateUser);
-
-
-        
-
-    }
-    catch(err){
-        console.log("cant update profile and error is "+err);
-    }
-
-    // enrolled Patient Update
-    try{
-
-        
-        const updateEnrolledPatient = await PatientEnrolled.updateOne({email},{
-            $set: {
-                name,
-                phone,
-            }
-        },{
-                new: true,
-                useFindAndModify : false
-            }
-        );
-
-    }
-    catch(err){
-        console.log("cant update profile and error is "+err);
-    }
-
-    // appointment update
-    try{
-
-        
-        const updateAppointment = await Patient.updateOne({email},{
-            $set: {
-                name,
-                phone,
-                address1: address,
 
             }
         },{
@@ -131,14 +102,64 @@ router.post("/editProfile",Authenticate, async(req,res)=>{
         );
 
 
-        res.status(200).json({
-            message: "Profile updated successfully"
+        res.json({
+            message : "Successfully updated"
         })
 
     }
     catch(err){
+        res.json({
+            message: err
+        })
         console.log("cant update profile and error is "+err);
     }
+
+    // enrolled Patient Update
+    // try{
+
+        
+    //     const updateEnrolledPatient = await PatientEnrolled.updateOne({email},{
+    //         $set: {
+    //             name,
+    //             phone,
+    //         }
+    //     },{
+    //             new: true,
+    //             useFindAndModify : false
+    //         }
+    //     );
+
+    // }
+    // catch(err){
+    //     console.log("cant update profile and error is "+err);
+    // }
+
+    // // appointment update
+    // try{
+
+        
+    //     const updateAppointment = await Patient.updateOne({email},{
+    //         $set: {
+    //             name,
+    //             phone,
+    //             address1: address,
+
+    //         }
+    //     },{
+    //             new: true,
+    //             useFindAndModify : false
+    //         }
+    //     );
+
+
+    //     res.status(200).json({
+    //         message: "Profile updated successfully"
+    //     })
+
+    // }
+    // catch(err){
+    //     console.log("cant update profile and error is "+err);
+    // }
 })
 
 
@@ -150,7 +171,7 @@ router.post("/editProfile",Authenticate, async(req,res)=>{
 
 //*******************Async and await********************/
 
-
+// successfully changed register router wrt new db schema
 router.post("/register", async (req,res)=>{
 
     try{
@@ -193,7 +214,8 @@ console.log(req.body)
 })
 
 
-// login route
+// login route 
+// successfully changed login wrt new db schema
 router.post("/login",async (req,res)=>{
 
     try{
@@ -231,6 +253,7 @@ router.post("/login",async (req,res)=>{
 });
 
 
+// updated everything wrt new db schema
 router.post("/appointment", Authenticate , async (req,res)=>{
     
 
@@ -283,8 +306,10 @@ router.post("/appointment", Authenticate , async (req,res)=>{
 
     const detailsExist = await UserDetails.findOne({user: user_id});
     // console.log(detailsExist)
+
+    let userDetail;
     if(!detailsExist){
-        const userDetail = new UserDetails({
+        userDetail = new UserDetails({
        
             user: user_id,
             name,
@@ -301,7 +326,7 @@ router.post("/appointment", Authenticate , async (req,res)=>{
         await userDetail.save();
     }
     else {
-        const updateDetails = await UserDetails.updateOne({user:user_id},{
+            userDetail = await UserDetails.updateOne({user:user_id},{
             $set: {
                 name,
                 bloodGroup,
@@ -336,6 +361,7 @@ router.post("/appointment", Authenticate , async (req,res)=>{
     const updateAppointment = await User.updateOne({email},{
         $set: {
             appointments: arr,
+            details : userDetail._id,
         }
     },{
             new: true,
@@ -343,7 +369,7 @@ router.post("/appointment", Authenticate , async (req,res)=>{
         }
     );
 
-        res.status(201).json({
+        return res.status(201).json({
             message : "successfully taken appointment",
         })
    }
@@ -356,10 +382,13 @@ router.post("/appointment", Authenticate , async (req,res)=>{
 });
 
 
-
+// updated everything wrt new db schema
 router.get("/list", Authenticate, async (req,res) => {
-
-    const data = await Patient.find();
+    // console.log("list data ")
+    const data = await Patient.find().populate({
+         path: 'user', 
+         populate: { path: 'details'}
+        }).exec();
     // console.log(data);
     res.status(200).send(data);
 })
@@ -395,7 +424,7 @@ router.post("/forgot_password",async (req,res)=> {
             })
         }
         const otp = generateOTP();
-       console.log(otp);
+        console.log(otp);
         const updateOtp = await User.updateOne({_id: registerUser._id},{
             $set: {
                 otp
@@ -544,37 +573,61 @@ router.post("/reset-password",async (req,res)=> {
 })
 
 
+
+// adjusted according to new Database schema
 router.post("/review", Authenticate, async (req,res)=> {
 
     try{
-        const {email} = req.rootUser;
+        // const {email} = req.rootUser;
         const {review,revRating} = req.body;
-        console.log(req.body);
+        // console.log(req.body,req.rootUser._id);
+        
+        const user = await User.findOne({_id : req.rootUser._id}).populate('appointments').exec();
+        // res.json({
+        //     user
+        // })
+        // console.log(user);
+        let totalAppointment = user.appointments.length;
+        
+        // console.log("total appointment is ")
+        // console.log(totalAppointment);
 
-        const userEnrolled = await PatientEnrolled.findOne({email});
-        if(!userEnrolled) {
-            res.status(401).json({
-                message : "You have not taken any appointment yet"
-            })
+
+        let takenAppointment = false;
+        if(totalAppointment > 1) takenAppointment = true;
+        else if(totalAppointment === 1) {
+            let appointments = user.appointments;
+            if(appointments[0].status === "Completed") takenAppointment = true;
+            else {
+                return res.status(401).json({
+                    message : "Your Appointment is in Progress "
+                })
+            }
+        }
+        // console.log("reach")
+        if(takenAppointment === false) {
+            return  res.status(401).json({
+                        message : "You havent taken any appointment yet"
+                    })
         }
         
+        const revs = await Reviews.find({user : req.rootUser._id});
         
-        const updateEnrolledPatinet = await PatientEnrolled.updateOne({email},{
-            $set: {
-                review,
-                rating:revRating,
-            }
-        },{
-                new: true,
-                useFindAndModify : false
-            }
-        );
-        
-    
-        res.status(200).json({
-            message: "Review Added",
-            email : userEnrolled._id,
+        // console.log("here");
+        const newReview = new Reviews({
+            user : user._id,
+            review ,
+            reviewRating : revRating
         })
+
+        await newReview.save();
+
+        return res.status(201).json({
+            message : "Successfully Taken Review",
+        })
+        
+      
+        
     }
     catch(err){
         res.status(500).json({
@@ -585,9 +638,10 @@ router.post("/review", Authenticate, async (req,res)=> {
 })
 
 
+// adjusted according to new Database schema
 router.get("/reviews",async(req,res)=> {
     try{
-        const user = await PatientEnrolled.find();
+        const user = await Reviews.find().populate('user').exec();
 
         res.status(200).json({
             user
@@ -659,10 +713,36 @@ router.get("/r",async (req,res)=>{
       
        
 })
+*/
 
 
+// for otp test 
 
-                */
+router.get("/temp",async(req,res)=>{
 
+    try{
+        const temp = new Story({
+            title : "otp",
+            otps: {
+                otp : "3438473",
+                createdAt : Date.now(),
+                expiresAt : Date.now()+10
+            }
+        })
+        await temp.save();
+        
+        // const data = Story.find();
+        // console.log(data);
+        return res.json({
+            mesg : ' cone '
+        })
+    }
+    catch(err){
+        return res.json({
+            err
+        })
+    }
+  
+}) 
 
 module.exports = router;

@@ -8,7 +8,7 @@ const Authenticate = async (req,res,next) => {
 
         const token = req.cookies.jwtoken;
         const verifyToken =  jwt.verify(token,process.env.JWT_SECRET);
-        console.log(verifyToken);
+        // console.log(verifyToken);
 
         const rootUser = await User.findOne({_id: verifyToken._id , "tokens.token" : token});
         // console.log(rootUser);
