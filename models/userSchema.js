@@ -20,13 +20,6 @@ const UserSchema = new mongoose.Schema({
         type : String,
         required: true,
     },
-    otp:{
-        type: String,
-    },
-    // cpassword:{
-    //     type : String,
-    //     required : true,
-    // },
     
     tokens: [{ token:{
         type: String,
@@ -39,6 +32,12 @@ const UserSchema = new mongoose.Schema({
     details : { type: mongoose.Schema.Types.ObjectId, ref: 'Details' },
 
     reviews : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reviews' }],
+
+    Role : {
+        type : String,
+        enum : ["user","admin"],
+        default : "user"
+    }
 });
 
 
@@ -113,6 +112,19 @@ const reviewSchema = new mongoose.Schema({
 
 // otp schema
 
+const userOtpSchema = new mongoose.Schema({
+    user : {type : mongoose.Schema.Types.ObjectId, ref : 'user'},
+    otp: {
+        type : String
+    },
+    createdAt : {
+        type : Date,
+        default : Date.now(),
+        index: { unique: true, expires: '5m' }
+    }
+})
+
+userOtpSchema.path('createdAt').index({ expires: 60 });
 UserSchema.methods.getJwtToken = async function(){
     try{
 
@@ -140,7 +152,8 @@ const User = mongoose.model("user", UserSchema);
 const Patient = mongoose.model("Appoitment",appointmentSchema);
 const UserDetails = mongoose.model("Details",userDetailsSchema);
 const Reviews = mongoose.model("Review",reviewSchema);
+const UserOtp = mongoose.model("Otp",userOtpSchema);
 
 module.exports = {
-    User,Patient,UserDetails,Reviews
+    User,Patient,UserDetails,Reviews,UserOtp
 };

@@ -1,5 +1,5 @@
 const express = require("express");
-const {User,Patient,UserDetails,Reviews} = require("../models/userSchema");
+const {User,Patient,UserDetails,Reviews,UserOtp} = require("../models/userSchema");
 // const Patient = require("../models/Appointment")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
@@ -237,6 +237,8 @@ router.post("/login",async (req,res)=>{
                 res.cookie("jwtoken",token,{
                     httpOnly : true,
                 });
+
+                console.log(userExist);
                 return res.status(200).json({
                     message : "User login successfully"
                 })
@@ -297,7 +299,7 @@ router.post("/appointment", Authenticate , async (req,res)=>{
         price = 200;
     }
     else if(isPatinetEnrolledBefore.length === 1){
-        price = isPatinetEnrolledBefore[0].status === "Completed" ? 200 : 500;
+        price = isPatinetEnrolledBefore[0].status === "Complete" ? 200 : 500;
     }
 
 
@@ -409,12 +411,16 @@ function generateOTP() {
     }
     return OTP;
 }
-
+// update forget_password route wrt new db schema
 router.post("/forgot_password",async (req,res)=> {
 
     try{
         const {email} = req.body;
-
+        if(!email){
+            return res.status(404).json({
+                message : "Enter Email"
+            })
+        }
         console.log(email)
         const registerUser = await User.findOne({email});
         console.log(registerUser)
@@ -424,16 +430,31 @@ router.post("/forgot_password",async (req,res)=> {
             })
         }
         const otp = generateOTP();
-        console.log(otp);
-        const updateOtp = await User.updateOne({_id: registerUser._id},{
-            $set: {
-                otp
-            }
-        },{
-                new: true,
-                useFindAndModify : false
-            }
-        );
+        const hashedOtp = await bcrypt.hash(otp,12);
+        console.log(hashedOtp);
+        const otpExist = await UserOtp.findOne({user : registerUser._id});
+
+        if(otpExist){
+            const updateOtp = await UserOtp.updateOne({user: registerUser._id},{
+                $set: {
+                    otp : hashedOtp
+                }
+            },{
+                    new: true,
+                    useFindAndModify : false
+                }
+            );
+        }
+        else {
+            const newOtp =  UserOtp({
+                user : registerUser._id,
+                otp : hashedOtp 
+            })
+
+            await newOtp.save();
+            console.log(newOtp)
+        }
+       
             // console.log(updateOtp);
         
         // using nodemailer for sending email
@@ -450,7 +471,7 @@ router.post("/forgot_password",async (req,res)=> {
             from: 'nodemailer123321@gmail.com',
             to : email,
             subject : 'Change Password',
-            text: ` Your OTP is - ${otp}`
+            text: ` Your OTP is - ${otp} and it will be valid only for 5 minutes`
         }
     
         transporter.sendMail(mailOptions, (err,info) => {
@@ -479,30 +500,38 @@ router.post("/forgot_password",async (req,res)=> {
 
 })
 
+
+// updated /otp route wrt new db schema
 router.post("/otp", async (req,res) => {
     // console.log(req.body);
     const { otp,email } = req.body;
 
-    const user = await User.findOne({email});
+    if(!otp || !email){
+        return res.status(404).json({
+            message : "otp or email is not here "
+        })
+    }
+    const registerUser = await User.findOne({email});
 
-    if(!user){
+    if(!registerUser){
         return res.status(404).json({
             message: "User not exist (/otp)",
         });
     }
 
-
-    if(otp !== user.otp) {
+    const userOtp = await UserOtp.findOne({user : registerUser._id});
+    console.log(userOtp);
+    let isMatch = await bcrypt.compare(otp,userOtp.otp)
+    if(!isMatch) {
         return res.status(400).json({
             message: "incorrect otp"
         })
     }
 
-    else if(otp === user.otp){
-        return res.status(200).json({
-            message: "correct otp go to reset password page"
-        })
-    }
+    return res.status(200).json({
+        message: "Correct Otp"
+    })
+    
 })
 
 router.post("/reset-password",async (req,res)=> {
@@ -516,37 +545,10 @@ router.post("/reset-password",async (req,res)=> {
 
     // console.log(req.body)
     const password = await bcrypt.hash(pass,12);
-    const cpassword = await bcrypt.hash(cpass,12);
 
     try{
 // update register password
         const updateUserPass = await User.updateOne({email},{
-            $set: {
-                password,
-                cpassword
-            }
-        },{
-                new: true,
-                useFindAndModify : false
-            }
-        );
-
-        // update patient (appointment DB) password;
-
-        const updatePatientPass = await Patient.updateOne({email},{
-            $set: {
-                password,
-            }
-        },{
-                new: true,
-                useFindAndModify : false
-            }
-        );
-
-
-        // update Enrolled Patient (PateintEnrolled DB) pass
-
-        const updateEnrolledPatinet = await PatientEnrolled.updateOne({email},{
             $set: {
                 password,
             }
@@ -656,6 +658,40 @@ router.get("/reviews",async(req,res)=> {
 })
 
 
+
+router.post("/delList",Authenticate, async(req,res)=> {
+
+    const { appointment_id }  = req.body;
+    if(req.rootUser.Role !== "admin"){
+        return res.status(401).json({
+            message : "You are not authorized to delte this"
+        })
+    }
+
+    const changeAptStatus = await Patient.updateOne({_id: appointment_id},{
+        $set: {
+            status : "Complete",
+        }
+    },{
+            new: true,
+            useFindAndModify : false
+        }
+    );
+
+
+    return res.status(200).json({
+        message : "Completed Appointment"
+    })
+})
+
+
+
+router.get("/logedInUser",Authenticate,async(req,res)=> {
+    res.status(200).json({
+        user : req.rootUser
+    })
+})
+
 /*
 // Learning about population and ref
 
@@ -718,31 +754,19 @@ router.get("/r",async (req,res)=>{
 
 // for otp test 
 
-router.get("/temp",async(req,res)=>{
+// router.get("/temp",async(req,res)=>{
 
-    try{
-        const temp = new Story({
-            title : "otp",
-            otps: {
-                otp : "3438473",
-                createdAt : Date.now(),
-                expiresAt : Date.now()+10
-            }
-        })
-        await temp.save();
-        
-        // const data = Story.find();
-        // console.log(data);
-        return res.json({
-            mesg : ' cone '
-        })
-    }
-    catch(err){
-        return res.json({
-            err
-        })
-    }
+//     try{
+//         const userOtp = new UserOtp({
+
+//         })
+//     }
+//     catch(err){
+//         return res.json({
+//             err
+//         })
+//     }
   
-}) 
+// }) 
 
 module.exports = router;
