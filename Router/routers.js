@@ -273,6 +273,15 @@ router.post("/appointment", Authenticate , async (req,res)=>{
         })
     }
 
+    const totalPatient = await Patient.find({status:"Progress"});
+    console.log(totalPatient);
+    console.log(totalPatient.length)
+    if(totalPatient.length > 50) {
+        return res.status(401).json({
+            message : "Tomorrows appointment is full",
+            totalPatient
+        })
+    }
     
 
     const user_id = req.rootUser._id;
@@ -292,7 +301,7 @@ router.post("/appointment", Authenticate , async (req,res)=>{
     // price decide 
 
     let price = 500;
-
+    console.log("bhai price ke paas")
     const isPatinetEnrolledBefore = await Patient.find({user:user_id});
 
     if(isPatinetEnrolledBefore.length > 1){
@@ -387,10 +396,11 @@ router.post("/appointment", Authenticate , async (req,res)=>{
 // updated everything wrt new db schema
 router.get("/list", Authenticate, async (req,res) => {
     // console.log("list data ")
-    const data = await Patient.find().populate({
+    const data = await Patient.find({status:"Progress"}).populate({
          path: 'user', 
          populate: { path: 'details'}
         }).exec();
+
     // console.log(data);
     res.status(200).send(data);
 })
@@ -687,9 +697,63 @@ router.post("/delList",Authenticate, async(req,res)=> {
 
 
 router.get("/logedInUser",Authenticate,async(req,res)=> {
-    res.status(200).json({
+    return res.status(200).json({
         user : req.rootUser
     })
+})
+
+router.get("/logout",Authenticate, (req,res) => {
+    console.log("logout call")
+    res.clearCookie('jwtoken');
+    console.log("after jwtoken");
+    res.status(201).json({
+        message : "Logged out successfully"
+    })
+})  
+
+
+router.get("/login_check",Authenticate,(req,res)=> {
+    return res.status(200).json({
+        success: true,
+        message: "user is logged in already",
+        
+    })
+});
+
+
+router.post("/search",Authenticate,async(req,res)=>{
+
+    try{
+        let {search_text} = req.body;
+        search_text =  search_text.trim();
+    
+    
+        const patient =  await Patient.find({status:"Progress"}).populate({
+            path:'user',
+            
+            match: {
+                $or: [
+                    {email : {$regex: search_text,$options: 'i'}},
+                    {name : {$regex: search_text,$options: 'i'}},
+                ]
+            } 
+            
+        }).exec();
+    
+        return res.status(200).json({
+            success : true,
+            patients : patient
+        })
+    }
+   
+    catch(err){
+        return res.status(404).json({
+            success : false,
+            message : "Appointment email not found",
+            error : err
+        })
+    }
+    
 })
 
 /*

@@ -17,6 +17,6 @@ app.use('/api',require("./Router/routers"));
 
 
 
-app.listen(process.env.PORT,function(){
+app.listen(process.env.PORT || 5000,function(){
     console.log(`server is running on ${process.env.PORT}`);
 })
