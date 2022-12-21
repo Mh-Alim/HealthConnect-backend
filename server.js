@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const connection = require("./db/conn");
 const cookieParser = require("cookie-parser");
+const stripe = require("stripe")(process.env.SECRET_KEY);
 
 // mongoose model
 const User = require("./models/userSchema");
