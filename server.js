@@ -16,9 +16,13 @@ connection();
 
 // routes
 app.use('/api',require("./Router/routers"));
-
+app.get("/",(req,res)=>{
+    res.json({
+        message : "on main page"
+    })
+})
 
 
 app.listen(port,function(){
-    console.log(`server is running on ${process.env.PORT}`);
+    console.log(`server is running on ${port}`);
 })
