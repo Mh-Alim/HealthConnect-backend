@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const connection = require("./db/conn");
 const cookieParser = require("cookie-parser");
+const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.SECRET_KEY);
 
 // mongoose model
@@ -18,6 +19,6 @@ app.use('/api',require("./Router/routers"));
 
 
 
-app.listen(process.env.PORT || 5000,function(){
+app.listen(port,function(){
     console.log(`server is running on ${process.env.PORT}`);
 })
