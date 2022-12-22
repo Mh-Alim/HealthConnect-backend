@@ -25,17 +25,11 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required : true,
     } }],
-    
-    // reviews 
-    appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appoitment' }],
 
     details : { type: mongoose.Schema.Types.ObjectId, ref: 'Details' },
 
-    reviews : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reviews' }],
-
     Role : {
         type : String,
-        enum : ["user","admin"],
         default : "user"
     }
 });
@@ -60,7 +54,7 @@ const appointmentSchema = new mongoose.Schema({
 
 // user physical details 
 
-const userDetailsSchema = new mongoose.Schema({
+const patientDetails = new mongoose.Schema({
     user: {type: mongoose.Schema.Types.ObjectId, ref : 'user'},
     name:{
         type : String
@@ -150,10 +144,10 @@ UserSchema.pre('save', async function(next){
 
 const User = mongoose.model("user", UserSchema);
 const Patient = mongoose.model("Appoitment",appointmentSchema);
-const UserDetails = mongoose.model("Details",userDetailsSchema);
+const PatientDetails = mongoose.model("Details",patientDetails);
 const Reviews = mongoose.model("Review",reviewSchema);
 const UserOtp = mongoose.model("Otp",userOtpSchema);
 
 module.exports = {
-    User,Patient,UserDetails,Reviews,UserOtp
+    User,Patient,PatientDetails,Reviews,UserOtp
 };

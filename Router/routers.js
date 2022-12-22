@@ -1,5 +1,5 @@
 const express = require("express");
-const {User,Patient,UserDetails,Reviews,UserOtp} = require("../models/userSchema");
+const {User,Patient,PatientDetails,Reviews,UserOtp} = require("../models/userSchema");
 // const Patient = require("../models/Appointment")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
@@ -87,7 +87,7 @@ router.post("/editProfile",Authenticate, async(req,res)=>{
         );
         // console.log(updateUser);
 
-        const updateDetails = await UserDetails.updateOne({user:req.rootUser._id},{
+        const updateDetails = await PatientDetails.updateOne({user:req.rootUser._id},{
             $set: {
 
                 address,
@@ -172,7 +172,7 @@ router.post("/editProfile",Authenticate, async(req,res)=>{
 
 //*******************Async and await********************/
 
-// successfully changed register router wrt new db schema
+// UPDATED
 router.post("/register", async (req,res)=>{
 
     try{
@@ -215,8 +215,7 @@ console.log(req.body)
 })
 
 
-// login route 
-// successfully changed login wrt new db schema
+// UPDATED
 router.post("/login",async (req,res)=>{
 
     try{
@@ -256,7 +255,7 @@ router.post("/login",async (req,res)=>{
 });
 
 
-// updated everything wrt new db schema
+// UPDATED
 router.post("/appointment", Authenticate , async (req,res)=>{
     
 
@@ -302,26 +301,21 @@ router.post("/appointment", Authenticate , async (req,res)=>{
     // price decide 
 
     let price = 500;
-    console.log("bhai price ke paas")
     const isPatinetEnrolledBefore = await Patient.find({user:user_id});
 
-    if(isPatinetEnrolledBefore.length > 1){
+    if(isPatinetEnrolledBefore.length >= 1){
         price = 200;
     }
-    else if(isPatinetEnrolledBefore.length === 1){
-        price = isPatinetEnrolledBefore[0].status === "Complete" ? 200 : 500;
-    }
+
+    // storing user details in PatientDetails collection 
 
 
-    // storing user details in userDetails collection 
-
-
-    const detailsExist = await UserDetails.findOne({user: user_id});
+    const detailsExist = await PatientDetails.findOne({user: user_id});
     // console.log(detailsExist)
 
     let userDetail;
     if(!detailsExist){
-        userDetail = new UserDetails({
+        userDetail = new PatientDetails({
        
             user: user_id,
             name,
@@ -338,7 +332,7 @@ router.post("/appointment", Authenticate , async (req,res)=>{
         await userDetail.save();
     }
     else {
-            userDetail = await UserDetails.updateOne({user:user_id},{
+            userDetail = await PatientDetails.updateOne({user:user_id},{
             $set: {
                 name,
                 bloodGroup,
@@ -359,30 +353,25 @@ router.post("/appointment", Authenticate , async (req,res)=>{
     }
 
 
-    // now taking appointment in appointment collection 
 
-    const appointment = new Patient({
-        user: user_id,
-        status: "Progress",
-        price
-    })
 
-    await appointment.save();
-    let arr = req.rootUser.appointments;
-    arr.push(appointment);
-    const updateAppointment = await User.updateOne({email},{
-        $set: {
-            appointments: arr,
-            details : userDetail._id,
-        }
-    },{
-            new: true,
-            useFindAndModify : false
-        }
-    );
+
+    // let arr = req.rootUser.appointments;
+    // arr.push(appointment);
+    // const updateAppointment = await User.updateOne({email},{
+    //     $set: {
+    //         appointments: arr,
+    //         details : userDetail._id,
+    //     }
+    // },{
+    //         new: true,
+    //         useFindAndModify : false
+    //     }
+    // );
 
         return res.status(201).json({
-            message : "successfully taken appointment",
+            message : "Pay Your Fee",
+            user_id
         })
    }
    catch(err){
@@ -393,8 +382,64 @@ router.post("/appointment", Authenticate , async (req,res)=>{
 
 });
 
+router.get("/takeApt",Authenticate,async(req,res) => {
 
-// updated everything wrt new db schema
+    // now taking appointment in appointment collection 
+    try{
+        const user_id = req.rootUser._id;
+        // deciding price 
+        let price = 50000;
+        const isPatinetEnrolledBefore = await Patient.find({user:user_id});
+
+        if(isPatinetEnrolledBefore.length >= 1){
+            price = 20000;
+        }
+        price /= 100;
+        console.log(user_id)
+        const appointment = new Patient({
+            user: user_id,
+            status: "Progress",
+            price
+        })
+    
+        await appointment.save();
+        console.log("successfull apt ")
+        res.status(200).json({
+            message : "Taken Appointment"
+        })
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({
+            err : err.message
+        })
+    }
+   
+
+})
+
+router.get("/deleteApp",Authenticate,async(req,res)=>{
+    try{
+        const user = req.rootUser._id;
+        console.log(user);
+        
+        await Patient.deleteOne({user, status:"Progress"});
+        console.log("deleted appointmnet")
+        return res.status(200).json({
+            message : "User deleted successfully",
+        })
+    }
+    catch(err){
+        console.log(err.message);
+        return res.json({
+            err : err.message,
+        })
+    }
+    
+})
+
+
+// UPDATED
 router.get("/list", Authenticate, async (req,res) => {
     // console.log("list data ")
     const data = await Patient.find({status:"Progress"}).populate({
@@ -422,7 +467,7 @@ function generateOTP() {
     }
     return OTP;
 }
-// update forget_password route wrt new db schema
+// UPDATED
 router.post("/forgot_password",async (req,res)=> {
 
     try{
@@ -512,7 +557,7 @@ router.post("/forgot_password",async (req,res)=> {
 })
 
 
-// updated /otp route wrt new db schema
+// UPDATED
 router.post("/otp", async (req,res) => {
     // console.log(req.body);
     const { otp,email } = req.body;
@@ -545,6 +590,7 @@ router.post("/otp", async (req,res) => {
     
 })
 
+// UPDATED
 router.post("/reset-password",async (req,res)=> {
     
     const {email , pass, cpass} = req.body;
@@ -587,7 +633,7 @@ router.post("/reset-password",async (req,res)=> {
 
 
 
-// adjusted according to new Database schema
+// UPDATED
 router.post("/review", Authenticate, async (req,res)=> {
 
     try{
@@ -760,19 +806,24 @@ router.post("/search",Authenticate,async(req,res)=>{
 // payment gatway using stripe => card 
 
 
-const calculateOrderAmount = (items) => {
-    // Replace this constant with a calculation of the order's amount
-    // Calculate the order total on the server to prevent
-    // people from directly manipulating the amount on the client
-    return 1400;
-  };
+
   
   router.post("/create-payment-intent", async (req, res) => {
-    const { items } = req.body;
-  
+    const { id } = req.body;
+    console.log(id)
+
+
+    // deciding price 
+    let price = 50000;
+    const isPatinetEnrolledBefore = await Patient.find({user:id});
+
+    if(isPatinetEnrolledBefore.length >= 1){
+        price = 20000;
+    }
+
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: calculateOrderAmount(items),
+      amount: price,
       currency: "inr",
       automatic_payment_methods: {
         enabled: true,
@@ -781,6 +832,7 @@ const calculateOrderAmount = (items) => {
   
     res.send({
       clientSecret: paymentIntent.client_secret,
+      price,
     });
   });
 
