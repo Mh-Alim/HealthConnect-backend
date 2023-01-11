@@ -237,7 +237,6 @@ router.post("/login",async (req,res)=>{
                 let token = await userExist.getJwtToken();
                 console.log("token is " + token);
                 res.cookie("jwtoken",token,{
-                    httpOnly : true,
                 });
 
                 console.log(userExist);
@@ -274,6 +273,7 @@ router.post("/appointment", Authenticate , async (req,res)=>{
             message : " entered email and registered email should be same"
         })
     }
+    console.log("after")
 
     const totalPatient = await Patient.find({status:"Progress"});
     console.log(totalPatient);

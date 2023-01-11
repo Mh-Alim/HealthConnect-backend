@@ -24,8 +24,9 @@ const Authenticate = async (req,res,next) => {
         next();
     }
     catch(err){
-        console.log("Error in Authentication");
-        res.status(401).json({message: "log in to access this"});
+        
+        console.log(err);
+        res.status(401).json({message: err});
     }
 
 }
