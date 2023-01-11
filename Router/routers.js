@@ -16,7 +16,9 @@ const {Story,Person} = require("../models/exampleSchema")
 const mongoose = require("mongoose")
 
 router.get("/",(req,res)=>{
-    res.send("Home page");
+     res.json({
+        message : "home page"
+    });
 })
 
 

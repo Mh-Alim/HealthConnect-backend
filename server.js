@@ -3,12 +3,20 @@ const express = require("express");
 const mongoose = require("mongoose");
 const connection = require("./db/conn");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.SECRET_KEY);
 
 // mongoose model
 const User = require("./models/userSchema");
 const app = express();
+
+
+app.use(
+    cors({
+        origin: "*"
+    })
+)
 app.use(express.json());    // data json ke form me deta h
 app.use(cookieParser());
 // mongoose  connection
