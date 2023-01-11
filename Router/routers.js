@@ -237,6 +237,7 @@ router.post("/login",async (req,res)=>{
                 let token = await userExist.getJwtToken();
                 console.log("token is " + token);
                 res.cookie("jwtoken",token,{
+                    httpOnly : false,
                 });
 
                 console.log(userExist);
