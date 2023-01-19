@@ -14,10 +14,13 @@ const app = express();
 
 app.use(
     cors({
-        origin: "*"
+        origin: process.env.FRONT_END_URL,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Origin', 'X-Requested-With', 'Accept', 'x-client-key', 'x-client-token', 'x-client-secret', 'Authorization'],
+        credentials:true,
     })
 )
-app.use(express.json());    // data json ke form me deta h
+app.use(express.json());    // data json ke form me deta 
 app.use(cookieParser());
 // mongoose  connection
 connection();

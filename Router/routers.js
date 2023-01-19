@@ -221,6 +221,7 @@ console.log(req.body)
 router.post("/login",async (req,res)=>{
 
     try{
+        console.log("Request coming in login")
         const {email,password} = req.body;
 
         if(!email || !password)
@@ -239,8 +240,9 @@ router.post("/login",async (req,res)=>{
                 res.cookie("jwtoken",token,{
                     httpOnly : false,
                 });
+                console.log(" after cookie");
 
-                console.log(userExist);
+                // console.log(userExist);
                 return res.status(200).json({
                     message : "User login successfully"
                 })
@@ -640,26 +642,28 @@ router.post("/reset-password",async (req,res)=> {
 router.post("/review", Authenticate, async (req,res)=> {
 
     try{
-        // const {email} = req.rootUser;
         const {review,revRating} = req.body;
-        // console.log(req.body,req.rootUser._id);
+        console.log(review, revRating);
         
-        const user = await User.findOne({_id : req.rootUser._id}).populate('appointments').exec();
-        // res.json({
-        //     user
-        // })
-        // console.log(user);
-        let totalAppointment = user.appointments.length;
+        const user = await User.findOne({_id : req.rootUser._id});
+        console.log(user)
+        let totalAppointment = 0;
         
-        // console.log("total appointment is ")
-        // console.log(totalAppointment);
-
-
+        const totalAppointments = await Patient.find();
+        let isAppointmentInProgress = false;
+        for(let i = 0; i < totalAppointments.length ; i++){
+        
+            if(totalAppointments[i].user.toString() === req.rootUser._id.toString()) {
+                totalAppointment++;
+                if(totalAppointments[i].status === "Progress") isAppointmentInProgress = true;
+            }
+        }
+        console.log(totalAppointment);
         let takenAppointment = false;
         if(totalAppointment > 1) takenAppointment = true;
         else if(totalAppointment === 1) {
-            let appointments = user.appointments;
-            if(appointments[0].status === "Completed") takenAppointment = true;
+  
+            if(isAppointmentInProgress === false) takenAppointment = true;
             else {
                 return res.status(401).json({
                     message : "Your Appointment is in Progress "
@@ -676,8 +680,9 @@ router.post("/review", Authenticate, async (req,res)=> {
         const revs = await Reviews.find({user : req.rootUser._id});
         
         // console.log("here");
+        let id = user._id;
         const newReview = new Reviews({
-            user : user._id,
+            user : id,
             review ,
             reviewRating : revRating
         })
@@ -692,6 +697,7 @@ router.post("/review", Authenticate, async (req,res)=> {
         
     }
     catch(err){
+        console.log(err);
         res.status(500).json({
             message: err,
         })
