@@ -82,8 +82,10 @@ exports.loginUser = async (req,res)=>{
             if(isMatch){
                 let token = await userExist.getJwtToken();
                 res.cookie("jwtoken",token,{
-                    httpOnly : true,
+                    httpOnly : false,
                 });
+
+                
 
                 return res.status(200).json({
                     message : "User login successfully",
