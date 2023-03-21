@@ -12,12 +12,7 @@ const User = require("./models/userSchema");
 const app = express();
 
 
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://cheerful-duckanoo-5dfdbb.netlify.app');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Headers', 'Cookie');
-    next();
-  });
+
 
 app.use(
     cors({
