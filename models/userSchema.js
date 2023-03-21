@@ -21,10 +21,6 @@ const UserSchema = new mongoose.Schema({
         required: true,
     },
     
-    tokens: [{ token:{
-        type: String,
-        required : true,
-    } }],
 
     details : { type: mongoose.Schema.Types.ObjectId, ref: 'Details' },
 
@@ -123,9 +119,6 @@ UserSchema.methods.getJwtToken = async function(){
     try{
 
         let generatedToken =  jwt.sign({_id: this._id},process.env.JWT_SECRET);
-        
-        this.tokens = this.tokens.concat({token:generatedToken});
-        await this.save();
         return  generatedToken;
     }
     catch(err){

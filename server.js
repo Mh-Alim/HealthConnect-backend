@@ -20,13 +20,17 @@ app.use(
         credentials:true,
     })
 )
+
+// app.use(cors({
+//     origin : "*"
+// }))
 app.use(express.json());    // data json ke form me deta 
 app.use(cookieParser());
 // mongoose  connection
 connection();
 
 // routes
-app.use('/api',require("./Router/routers"));
+app.use('/api',require("./Router/Routes"));
 app.get("/",(req,res)=>{
     res.json({
         message : "on main page"
