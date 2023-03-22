@@ -81,13 +81,14 @@ exports.loginUser = async (req,res)=>{
             const isMatch = await bcrypt.compare(password,userExist.password);
             if(isMatch){
                 let token = await userExist.getJwtToken();
-                res.cookie("jwtoken",token,{
+                res.cookie("jwtoken", token
+                    // , {
                     
-                    domain: 'netlify.app', // Set the domain of the cookie
-                    path: '/sdfsd', // Set the path of the cookie
-                    httpOnly: true,
-                    secure: true,
-                });
+                    // domain: 'netlify.app', // Set the domain of the cookie
+                    // path: '/', // Set the path of the cookie
+                    // httpOnly: false
+                    // }
+                );
 
 
                 
