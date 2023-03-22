@@ -83,13 +83,12 @@ exports.loginUser = async (req,res)=>{
                 let token = await userExist.getJwtToken();
                 res.cookie("jwtoken",token,{
                     
-                    domain: "netlify.app", // Set the domain of the cookie
-                    path: '/', // Set the path of the cookie
+                    domain: 'netlify.app', // Set the domain of the cookie
+                    path: '/sdfsd', // Set the path of the cookie
                     httpOnly: true,
                     secure: true,
                 });
 
-                // console.log("res for cookie is ", res);
 
                 
 
