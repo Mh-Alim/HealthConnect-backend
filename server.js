@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.SECRET_KEY);
+const path = require("path");
 
 // mongoose model
 const User = require("./models/userSchema");
@@ -30,14 +31,9 @@ app.use(express.json());    // data json ke form me deta
 app.use(cookieParser());
 // mongoose  connection
 connection();
-
 // routes
 app.use('/api',require("./Router/Routes"));
-app.get("/",(req,res)=>{
-    res.json({
-        message : "on main page"
-    })
-})
+app.use('/',express.static(path.join('./public/build')))
 
 
 app.listen(port,function(){

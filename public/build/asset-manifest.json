@@ -1,0 +1,37 @@
+{
+  "files": {
+    "main.css": "/static/css/main.67bc9dfb.css",
+    "main.js": "/static/js/main.cc0d26bc.js",
+    "static/media/fa-solid-900.svg": "/static/media/fa-solid-900.7a8b4f130182d19a2d7c.svg",
+    "static/media/fa-brands-400.svg": "/static/media/fa-brands-400.2f517e09eb2ca6650ff5.svg",
+    "static/media/dr-graphic.png": "/static/media/dr-graphic.8a9e14c2f5809e5b0b0a.png",
+    "static/media/fa-solid-900.eot": "/static/media/fa-solid-900.9bbb245e67a133f6e486.eot",
+    "static/media/fa-solid-900.ttf": "/static/media/fa-solid-900.be9ee23c0c6390141475.ttf",
+    "static/media/bootstrap-icons.woff?": "/static/media/bootstrap-icons.e559bf06bc84fd9525e6.woff",
+    "static/media/fa-regular-400.svg": "/static/media/fa-regular-400.4689f52cc96215721344.svg",
+    "static/media/drImg1.png": "/static/media/drImg1.7c2bc96d67d3eba1d64a.png",
+    "static/media/fa-brands-400.eot": "/static/media/fa-brands-400.23f19bb08961f37aaf69.eot",
+    "static/media/fa-brands-400.ttf": "/static/media/fa-brands-400.527940b104eb2ea366c8.ttf",
+    "static/media/bootstrap-icons.woff2?": "/static/media/bootstrap-icons.ea98e12d2d58747f9fc5.woff2",
+    "static/media/fa-solid-900.woff": "/static/media/fa-solid-900.eeccf4f66002c6f2ba24.woff",
+    "static/media/hospital-logo.png": "/static/media/hospital-logo.f01d373e3a3c04ddf0ce.png",
+    "static/media/fa-brands-400.woff": "/static/media/fa-brands-400.2285773e6b4b172f07d9.woff",
+    "static/media/fa-solid-900.woff2": "/static/media/fa-solid-900.1551f4f60c37af51121f.woff2",
+    "static/media/fa-brands-400.woff2": "/static/media/fa-brands-400.d878b0a6a1144760244f.woff2",
+    "static/media/user.jpg": "/static/media/user.e857f45860a47d11abdd.jpg",
+    "static/media/fa-regular-400.eot": "/static/media/fa-regular-400.77206a6bb316fa0aded5.eot",
+    "static/media/fa-regular-400.ttf": "/static/media/fa-regular-400.491974d108fe4002b2aa.ttf",
+    "static/media/fa-regular-400.woff": "/static/media/fa-regular-400.bb58e57c48a3e911f15f.woff",
+    "static/media/fa-regular-400.woff2": "/static/media/fa-regular-400.7a3337626410ca2f4071.woff2",
+    "static/media/shape.png": "/static/media/shape.1112f1ac0dc18e511a91.png",
+    "index.html": "/index.html",
+    "static/media/arrow_left.svg": "/static/media/arrow_left.db6e2d88c7c35a775ce4.svg",
+    "static/media/arrow_right.svg": "/static/media/arrow_right.f7c6ac6d310d3b82f0a0.svg",
+    "main.67bc9dfb.css.map": "/static/css/main.67bc9dfb.css.map",
+    "main.cc0d26bc.js.map": "/static/js/main.cc0d26bc.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.67bc9dfb.css",
+    "static/js/main.cc0d26bc.js"
+  ]
+}
