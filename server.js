@@ -12,30 +12,35 @@ const path = require("path");
 const User = require("./models/userSchema");
 const app = express();
 
-
-
-
 app.use(
-    cors({
-        origin: process.env.FRONT_END_URL,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Origin', 'X-Requested-With', 'Accept', 'x-client-key', 'x-client-token', 'x-client-secret', 'Authorization'],
-        credentials:true,
-    })
-)
+  cors({
+    origin: process.env.FRONT_END_URL,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Origin",
+      "X-Requested-With",
+      "Accept",
+      "x-client-key",
+      "x-client-token",
+      "x-client-secret",
+      "Authorization",
+    ],
+    credentials: true,
+  })
+);
 
 // app.use(cors({
 //     origin : "*"
 // }))
-app.use(express.json());    // data json ke form me deta 
+app.use(express.json()); // data json ke form me deta
 app.use(cookieParser());
 // mongoose  connection
 connection();
 // routes
-app.use('/api',require("./Router/Routes"));
-app.use('/',express.static(path.join('./public/build')))
+app.use("/api", require("./Router/Routes"));
+app.use("/", express.static(path.join("./public/build")));
 
-
-app.listen(port,function(){
-    console.log(`server is running on ${port}`);
-})
+app.listen(port, function () {
+  console.log(`server is running on ${port}`);
+});
