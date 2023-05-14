@@ -5,6 +5,7 @@ const connection = require("./db/conn");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
+// const port = 5000;
 const stripe = require("stripe")(process.env.SECRET_KEY);
 const path = require("path");
 
