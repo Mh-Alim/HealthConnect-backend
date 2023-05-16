@@ -144,8 +144,15 @@ exports.takeAppointment = async (req,res)=>{
             phone,
     
         })
+        // console.log("500 apt");
+        const userDetails = await userDetail.save();
+        const user = await User.findById(user_id);
+        // console.log(" curr User ", user);
+        // console.log(" curr details ", userDetails);
+        user.details = userDetails._id;
+        await user.save();
     
-        await userDetail.save();
+
     }
     else {
             userDetail = await PatientDetails.updateOne({user:user_id},{

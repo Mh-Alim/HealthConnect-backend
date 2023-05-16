@@ -9,8 +9,6 @@ const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.SECRET_KEY);
 const path = require("path");
 
-// mongoose model
-const User = require("./models/userSchema");
 const app = express();
 
 app.use(
